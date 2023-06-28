@@ -1,44 +1,55 @@
-import { useState } from 'react';
-import { useFetch } from './use-fetch';
-
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 
-export const Home = () => {
-  const [postId, setPostId] = useState('');
-  const [result, loading] = useFetch(
-    'https://jsonplaceholder.typicode.com/posts/' + postId,
-    {
-      headers: {
-        abc: '1',
-      },
-    },
+import { useState } from 'react';
+import { cloneElement } from 'react';
+import { Children } from 'react';
+
+const s = {
+  style: {
+    fontSize: '50px',
+  },
+};
+
+const TurnOnOff = ({ children }) => {
+  const [isOn, setIsOn] = useState();
+  const onTurn = () => setIsOn((s) => !s);
+
+  return Children.map(children, (child) => {
+    const newChild = cloneElement(child, {
+      isOn,
+      onTurn,
+    });
+    return newChild;
+  });
+};
+
+const TurnedON = ({ isOn, children }) => (isOn ? children : null);
+
+const TurnedOff = ({ isOn, children }) => (isOn ? null : children);
+
+const TurnButton = ({ isOn, onTurn, ...props }) => {
+  return (
+    <button onClick={onTurn} {...props}>
+      Turn {isOn ? 'ON' : 'OFF'}
+    </button>
   );
+};
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
+const P = ({ children }) => <p {...s}>{children}</p>;
 
-  const handleClick = (id) => {
-    setPostId(id);
-  };
-
-  if (!loading && result) {
-    return (
-      <div>
-        {result?.length > 0 ? (
-          result.map((p) => (
-            <p onClick={() => handleClick(p.id)} key={`post-${p.id}`}>
-              {p.title}
-            </p>
-          ))
-        ) : (
-          <div onClick={() => handleClick('')}>{result.title}</div>
-        )}
-      </div>
-    );
-  }
-
-  return <h1>Oi</h1>;
+export const Home = () => {
+  return (
+    <TurnOnOff>
+      <TurnedON>
+        <P> Aqui as coisa que vão acontecer quando estiver On.</P>
+      </TurnedON>
+      <TurnedOff>
+        Aqui as coisas que vão acontecer quando estiver Off.
+      </TurnedOff>
+      <TurnButton {...s} />
+    </TurnOnOff>
+  );
 };
 
 export default Home;
