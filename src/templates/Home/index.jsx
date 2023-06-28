@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 
-import { useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { cloneElement } from 'react';
 import { Children } from 'react';
 
@@ -11,24 +11,31 @@ const s = {
   },
 };
 
+const TurnOnOffContext = createContext();
+
 const TurnOnOff = ({ children }) => {
   const [isOn, setIsOn] = useState();
   const onTurn = () => setIsOn((s) => !s);
 
-  return Children.map(children, (child) => {
-    const newChild = cloneElement(child, {
-      isOn,
-      onTurn,
-    });
-    return newChild;
-  });
+  return (
+    <TurnOnOffContext.Provider value={{ isOn, onTurn }}>
+      {children}
+    </TurnOnOffContext.Provider>
+  );
 };
 
-const TurnedON = ({ isOn, children }) => (isOn ? children : null);
+const TurnedON = ({ children }) => {
+  const { isOn } = useContext(TurnOnOffContext);
+  return isOn ? children : null;
+};
 
-const TurnedOff = ({ isOn, children }) => (isOn ? null : children);
+const TurnedOff = ({ children }) => {
+  const { isOn } = useContext(TurnOnOffContext);
+  return isOn ? null : children;
+};
 
-const TurnButton = ({ isOn, onTurn, ...props }) => {
+const TurnButton = ({ ...props }) => {
+  const { isOn, onTurn } = useContext(TurnOnOffContext);
   return (
     <button onClick={onTurn} {...props}>
       Turn {isOn ? 'ON' : 'OFF'}
@@ -41,13 +48,17 @@ const P = ({ children }) => <p {...s}>{children}</p>;
 export const Home = () => {
   return (
     <TurnOnOff>
-      <TurnedON>
-        <P> Aqui as coisa que vão acontecer quando estiver On.</P>
-      </TurnedON>
-      <TurnedOff>
-        Aqui as coisas que vão acontecer quando estiver Off.
-      </TurnedOff>
-      <TurnButton {...s} />
+      <div>
+        <p>Oi</p>
+        <TurnedON>
+          <P> Aqui as coisa que vão acontecer quando estiver On.</P>
+        </TurnedON>
+
+        <TurnedOff>
+          <P>Aqui as coisas que vão acontecer quando estiver Off.</P>
+        </TurnedOff>
+        <TurnButton {...s} />
+      </div>
     </TurnOnOff>
   );
 };
